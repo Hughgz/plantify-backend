@@ -1,5 +1,6 @@
 package com.example.plantify_backend.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -8,7 +9,8 @@ import java.util.Map;
 
 @Service
 public class WeatherService {
-    private final String API_KEY = "9b770bf9ce6a6babe80314003c98c09c";
+    @Value("${weather.api.key}")
+    private String API_KEY;
     private final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
     private final RestTemplate restTemplate = new RestTemplate();

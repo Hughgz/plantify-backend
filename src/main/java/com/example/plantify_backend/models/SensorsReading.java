@@ -1,6 +1,8 @@
 package com.example.plantify_backend.models;
 
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,9 +21,12 @@ public class SensorsReading {
     private float soilConductivity;
     private float soilHumidity;
     private float soilPH;
-    private float waterMeter;
+    private float rain;
     private float soilTemperature;
     private float temperature;
     private float humidity;
     private int weather;
+    private float flowSensor1;
+    private float flowSensor2;
+    private LocalDateTime regDate;
 }

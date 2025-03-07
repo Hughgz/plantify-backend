@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Service
 public class WeatherService {
-    @Value("${weather.api.key}")
+    @Value("${weather_api}")
     private String API_KEY;
     private final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 

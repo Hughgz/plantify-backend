@@ -10,7 +10,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/db_plantify?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 11082003
-      WEATHER_API_KEY: 9b770bf9ce6a6babe80314003c98c09c
     restart: always
 
   mysql-db:

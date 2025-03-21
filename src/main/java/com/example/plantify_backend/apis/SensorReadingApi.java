@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/sensorReading")
@@ -30,4 +33,10 @@ public class SensorReadingApi {
             return ResponseEntity.ok(sensorReadingDtos);
         }
     }
+    @PostMapping("/insert")
+    public ResponseEntity<?> insertSensorReading(@RequestBody SensorReadingDto dto) {
+        service.insertSensorReading(dto);
+        return ResponseEntity.ok("Insert successfuly");
+    }
+    
 }

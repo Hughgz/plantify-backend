@@ -8,11 +8,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.plantify_backend.dtos.PlantDto;
 import com.example.plantify_backend.services.impl.PlantService;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
 @RequestMapping("/api/plants")
+@CrossOrigin(origins = "*")
+
 public class PlantApi {
     private final PlantService plantService;
     public PlantApi(PlantService plantService) {

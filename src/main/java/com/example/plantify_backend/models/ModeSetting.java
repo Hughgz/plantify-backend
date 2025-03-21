@@ -15,5 +15,5 @@ public class ModeSetting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Byte mode;
+    private Integer mode;
 }

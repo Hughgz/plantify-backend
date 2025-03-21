@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface SensorReadingInt {
     List<SensorReadingDto> getAllSensorReading();
-        
+    void insertSensorReading(SensorReadingDto dto);
     SensorReadingDto convert(SensorsReading sensorsReading);
 }

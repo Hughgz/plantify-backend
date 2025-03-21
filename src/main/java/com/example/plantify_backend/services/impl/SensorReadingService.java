@@ -29,4 +29,10 @@ public class SensorReadingService implements SensorReadingInt {
     public SensorReadingDto convert(SensorsReading sensorsReading) {
         return new ModelMapper().map(sensorsReading, SensorReadingDto.class);
     }
+
+    @Override
+    public void insertSensorReading(SensorReadingDto dto) {
+        SensorsReading sensorsReading = new ModelMapper().map(dto, SensorsReading.class);
+        repository.save(sensorsReading);
+    }
 }

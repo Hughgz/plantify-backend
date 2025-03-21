@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/user")
+@CrossOrigin(origins = "*")
+
 public class UserApi {
     private final UserService service;
 

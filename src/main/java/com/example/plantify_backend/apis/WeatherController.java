@@ -7,7 +7,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/weather")
-@CrossOrigin(origins = "*") // Cho phép frontend truy cập API
+@CrossOrigin(origins = "*")
 public class WeatherController {
     private final WeatherService weatherService;
 

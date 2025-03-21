@@ -8,14 +8,12 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "led_status")
+@Table(name = "wifi_setting")
 @Data
-public class LedStatus {
+public class WifiSetting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private boolean led1;
-    private boolean led2;
-    private boolean led3;
-    private boolean led4;
+    private int id;
+    private String ssid;
+    private String password;
 }

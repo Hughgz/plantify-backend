@@ -28,6 +28,7 @@ public class JWTTokenUtils {
     private Long expiration; // This should be in seconds
     @Value("${JWT_SECRET}")
     private String secretKey;
+
     public String generateToken(Users user) throws Exception {
         Map<String, Object> claims = new HashMap<>();
         //this.generateSecretKey();
@@ -45,6 +46,15 @@ public class JWTTokenUtils {
             throw new InvalidParameterException("Cannot create jwt token: " + e.getMessage());
         }
     }
+    public String generateRefreshToken(Users user) {
+        return Jwts.builder()
+                .setSubject(user.getPhoneNumber())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000L)) // 7 ngày
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
 
     private SecretKey getSignKey() {
         byte[] bytes = Decoders.BASE64.decode(secretKey); //Keys.hmacShaKeyFor(Decoders.BASE64.decode("d1AhbW9bBYZwXoENsaGu4bgY3+rLo/YRsBnRhrsQPak="))
@@ -81,7 +91,11 @@ public class JWTTokenUtils {
     public String extractPhone(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-
+    public long getTokenRemainingTime(String token) {
+        Date expirationDate = this.extractClaim(token, Claims::getExpiration);
+        long now = System.currentTimeMillis();
+        return (expirationDate.getTime() - now) / (60 * 1000); // minutes
+    }    
     public boolean validateToken(String token, UserDetails userDetails) {
         String phone = extractPhone(token);
         return (phone.equals(userDetails.getUsername())) && !isTokenExpiration(token);

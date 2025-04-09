@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.plantify_backend.dtos.LedControlDto;
 import com.example.plantify_backend.services.impl.LedControlService;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 @RestController
 @RequestMapping("/api/ledControl")
@@ -26,5 +30,12 @@ public class LedControlApi {
     public ResponseEntity<?> getAll(){
         List<LedControlDto> listControlDtos = service.getAllLedControl();
         return ResponseEntity.ok(listControlDtos);
+    }
+
+    @PutMapping("/updateLedControl")
+    public ResponseEntity<?> updateLedControl(@RequestBody LedControlDto ledControlDto) {
+        LedControlDto updatedLedControl = service.updateLedControl(ledControlDto);
+        return ResponseEntity.ok(updatedLedControl);
+        
     }
 }

@@ -20,6 +20,9 @@ public class LoginResponse {
     @JsonProperty("token")
     private String token;
 
+    @JsonProperty("refreshToken")
+    private String refreshToken;
+
     @JsonProperty("user")
     private UserDto user;
 }

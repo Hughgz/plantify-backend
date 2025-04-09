@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.plantify_backend.models.Users;
+import com.example.plantify_backend.services.impl.TokenBlackListService;
 import com.example.plantify_backend.utils.JWTTokenUtils;
 
 import jakarta.servlet.FilterChain;
@@ -27,6 +28,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
     private final JWTTokenUtils jwtTokenUtils;
+    private final TokenBlackListService tokenBlackListService;
 
     @Override
     protected void doFilterInternal(
@@ -35,36 +37,35 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // ✅ Nếu request là login/register, bỏ qua JWT Filter
             if (isBypassToken(request)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-
-            // ✅ Kiểm tra Authorization header
             final String authHeader = request.getHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
+        final String token = authHeader.substring(7);
 
-            // ✅ Trích xuất token từ Authorization header
-            final String token = authHeader.substring(7);
-            final String phoneNumber = jwtTokenUtils.extractPhone(token);
+        if (tokenBlackListService.isTokenBlacklisted(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Access token has been blacklisted.");
+            return;
+        }
 
-            // ✅ Kiểm tra token và xác thực user
-            if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                Users existingUser = (Users) userDetailsService.loadUserByUsername(phoneNumber);
-                if (jwtTokenUtils.validateToken(token, existingUser)) {
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(existingUser, null, existingUser.getAuthorities());
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }
+        final String phoneNumber = jwtTokenUtils.extractPhone(token);
+
+        if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            Users existingUser = (Users) userDetailsService.loadUserByUsername(phoneNumber);
+            if (jwtTokenUtils.validateToken(token, existingUser)) {
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(existingUser, null, existingUser.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
-
+        }
         } catch (Exception e) {
-            // ✅ Log lỗi thay vì chặn request
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Unauthorized: " + e.getMessage());
             return;
@@ -72,8 +73,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
-
-    // ✅ Danh sách API không yêu cầu JWT Token
     private boolean isBypassToken(@NotNull HttpServletRequest request) {
         final List<String> bypassUrls = Arrays.asList(
                 "/api/user/login",

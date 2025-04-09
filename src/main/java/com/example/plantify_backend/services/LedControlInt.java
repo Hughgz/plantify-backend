@@ -8,5 +8,6 @@ import com.example.plantify_backend.models.LedControl;
 
 public interface LedControlInt {
     List<LedControlDto> getAllLedControl();
+    LedControlDto updateLedControl(LedControlDto ledControlDto);
     LedControlDto convert(LedControl ledControl);
 }

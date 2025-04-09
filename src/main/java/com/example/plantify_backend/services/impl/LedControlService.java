@@ -24,10 +24,23 @@ public class LedControlService implements LedControlInt{
         List<LedControl> ledControls = ledControlRepo.findAll();
         return ledControls.stream().map(ledControl -> convert(ledControl)).toList();
     }
+    
 
     @Override
     public LedControlDto convert(LedControl ledControl) {
         return new ModelMapper().map(ledControl, LedControlDto.class);
+    }
+
+    @Override
+    public LedControlDto updateLedControl(LedControlDto ledControlDto) {
+        LedControl ledControl = ledControlRepo.findById(ledControlDto.getId()).orElseThrow(() -> new RuntimeException("LedControl not found"));
+        if (ledControl == null) {
+            throw new RuntimeException("LedControl not found");
+        }        
+        ledControl.setTurnOnTime(ledControlDto.getTurnOnTime());
+        ledControl.setTurnOffTime(ledControlDto.getTurnOffTime());
+        ledControlRepo.save(ledControl);
+        return convert(ledControl);    
     }
 
 

@@ -27,24 +27,17 @@ public class UserService implements UserInt {
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
     private final JWTTokenUtils jwtTokenUtil;
-    private final RedisTokenService redisTokenService;
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
-    private final UserDetailsService userDetailsService;
-    private final TokenBlackListService tokenBlackListService;
 
 
     public UserService(UserRepo repository, RoleRepo roleRepo, PasswordEncoder passwordEncoder,
-                       JWTTokenUtils jwtTokenUtil, AuthenticationManager authenticationManager,
-                       RedisTokenService redisTokenService, UserDetailsService userDetailsService, TokenBlackListService tokenBlackListService) {
+                       JWTTokenUtils jwtTokenUtil, AuthenticationManager authenticationManager) {
         this.repository = repository;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtil = jwtTokenUtil;
         this.authenticationManager = authenticationManager;
-        this.redisTokenService = redisTokenService;
-        this.userDetailsService = userDetailsService;
-        this.tokenBlackListService = tokenBlackListService;
         this.modelMapper = new ModelMapper();
     }
 
@@ -75,55 +68,25 @@ public class UserService implements UserInt {
     }
 
     @Override
-    public LoginResponse login(String phoneNumber, String password) throws Exception {
+    public String login(String phoneNumber, String password) throws Exception {
         Users existingUser = repository.findByPhoneNumber(phoneNumber);
         if (existingUser == null) {
             throw new DataNotFoundException("Phone does not exist");
         }
 
+        // Kiểm tra mật khẩu
         if (!passwordEncoder.matches(password, existingUser.getPassword())) {
             throw new BadCredentialsException("Password doesn't match, please try again");
         }
 
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(phoneNumber, password, existingUser.getAuthorities());
-
+        // Xác thực bằng Spring Security
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                phoneNumber, password, existingUser.getAuthorities()
+        );
         authenticationManager.authenticate(authenticationToken);
 
-        String accessToken = jwtTokenUtil.generateToken(existingUser);
-        String refreshToken = jwtTokenUtil.generateRefreshToken(existingUser); // Tạo refresh token
-
-        // Lưu refresh token vào Redis
-        redisTokenService.saveRefeshToken(
-            existingUser.getUserId(), // key
-            refreshToken,
-            7 * 24 * 60 // TTL 7 ngày
-        );
-        System.out.println(">> Saving refresh token for userId = " + existingUser.getUserId());
-        return LoginResponse.builder()
-                .message("Login successful")
-                .token(accessToken)
-                .refreshToken(refreshToken)
-                .user(convert(existingUser))
-                .build();
-    }
-    @Override
-    public ResponseEntity<?> refreshAccessToken(String refreshToken) {
-        try {
-            String phone = jwtTokenUtil.extractPhone(refreshToken);
-            Users user = (Users) userDetailsService.loadUserByUsername(phone);
-
-            String savedToken = redisTokenService.getRefreshToken(user.getUserId());
-
-            if (savedToken == null || !savedToken.equals(refreshToken)) {
-                return ResponseEntity.status(401).body("Refresh token is invalid or expired");
-            }
-
-            String newAccessToken = jwtTokenUtil.generateToken(user);
-            return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Invalid refresh token: " + e.getMessage());
-        }
+        // Tạo JWT token
+        return jwtTokenUtil.generateToken(existingUser);
     }
     @Override
     public UserDto searchByPhone(String phone) {
@@ -131,29 +94,6 @@ public class UserService implements UserInt {
         return convert(user);
     }
 
-    @Override
-    public ResponseEntity<?> logout(String refreshToken, String accessToken) {
-        try {
-            String phone = jwtTokenUtil.extractPhone(refreshToken);
-            Users user = (Users) userDetailsService.loadUserByUsername(phone);
-
-            String savedToken = redisTokenService.getRefreshToken(user.getUserId());
-            if (savedToken == null || !savedToken.equals(refreshToken)) {
-                return ResponseEntity.status(401).body("Invalid refresh token");
-            }
-
-            redisTokenService.deleteRefeshToken(user.getUserId());
-
-            // ✅ Đưa accessToken vào blacklist
-            long tokenTTL = jwtTokenUtil.getTokenRemainingTime(accessToken);
-            tokenBlackListService.blackListToken(accessToken, tokenTTL);
-
-            return ResponseEntity.ok("Logged out and access token blacklisted");
-
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Invalid refresh token: " + e.getMessage());
-        }
-    }
 
 
     @Override

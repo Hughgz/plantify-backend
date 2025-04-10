@@ -55,6 +55,7 @@ public class UserApi {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody UserLoginDto userLoginDTO) {
         try {
+            // Validate phone number format
             if (!isValidPhoneNumber(userLoginDTO.getPhoneNumber())) {
                 return ResponseEntity.badRequest().body(
                         LoginResponse.builder()
@@ -63,41 +64,39 @@ public class UserApi {
                 );
             }
 
-            LoginResponse loginResponse = service.login(
-                    userLoginDTO.getPhoneNumber(),
-                    userLoginDTO.getPassword()
-            );
+            // Attempt login with phone number and password
+            String token = service.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+            if (token == null) {
+                // If the token is null, it means login failed (incorrect phone number or password)
+                return ResponseEntity.badRequest().body(
+                        LoginResponse.builder()
+                                .message("Số điện thoại hoặc mật khẩu không chính xác")
+                                .build()
+                );
+            }
 
-            return ResponseEntity.ok(loginResponse);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    LoginResponse.builder()
-                            .message("Tài khoản hoặc mật khẩu không đúng, vui lòng thử lại")
-                            .build()
-            );
-        }
+            // After login success, fetch user details
+            UserDto userDTO = service.searchByPhone(userLoginDTO.getPhoneNumber());
+            if (userDTO == null) {
+                throw new RuntimeException("Không tìm thấy người dùng, vui lòng thử lại");
+            }
+
+            // Create successful login response
+                return ResponseEntity.ok(
+                        LoginResponse.builder()
+                                .message("Login successfully")
+                                .token(token)
+                                .user(userDTO)
+                                .build()
+                );
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(
+                        LoginResponse.builder()
+                                .message("Tài khoản hoặc mật khẩu không đúng, vui lòng thử lại")
+                                .build()
+                );
+            }
     }
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            return ResponseEntity.badRequest().body("Refresh token is missing");
-        }
-        return service.refreshAccessToken(refreshToken);
-    }  
-    
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader,
-                                    @RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            return ResponseEntity.badRequest().body("Refresh token is missing");
-        }
-
-        String accessToken = authHeader.replace("Bearer ", "");
-        return service.logout(refreshToken, accessToken);
-    }
-
 
     private boolean isValidPhoneNumber(String phoneNumber) {
         String regex = "^(0[3|5|7|8|9][0-9]{8})$";

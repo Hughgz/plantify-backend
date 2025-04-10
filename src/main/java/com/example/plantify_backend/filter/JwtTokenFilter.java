@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.plantify_backend.models.Users;
-import com.example.plantify_backend.services.impl.TokenBlackListService;
 import com.example.plantify_backend.utils.JWTTokenUtils;
 
 import jakarta.servlet.FilterChain;
@@ -28,7 +27,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
     private final JWTTokenUtils jwtTokenUtils;
-    private final TokenBlackListService tokenBlackListService;
 
     @Override
     protected void doFilterInternal(
@@ -47,12 +45,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 return;
             }
         final String token = authHeader.substring(7);
-
-        if (tokenBlackListService.isTokenBlacklisted(token)) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Access token has been blacklisted.");
-            return;
-        }
 
         final String phoneNumber = jwtTokenUtils.extractPhone(token);
 

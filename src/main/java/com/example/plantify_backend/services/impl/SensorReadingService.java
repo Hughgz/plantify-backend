@@ -35,4 +35,13 @@ public class SensorReadingService implements SensorReadingInt {
         SensorsReading sensorsReading = new ModelMapper().map(dto, SensorsReading.class);
         repository.save(sensorsReading);
     }
+    
+    @Override
+    public SensorReadingDto getLatestSensorReading() {
+        SensorsReading latestReading = repository.findLatestSensorReading();
+        if (latestReading == null) {
+            return null;
+        }
+        return convert(latestReading);
+    }
 }

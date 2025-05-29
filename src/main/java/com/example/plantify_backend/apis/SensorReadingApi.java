@@ -39,4 +39,13 @@ public class SensorReadingApi {
         return ResponseEntity.ok("Insert successfuly");
     }
     
+    @GetMapping("/latest")
+    public ResponseEntity<?> getLatestSensorReading() {
+        SensorReadingDto latestReading = service.getLatestSensorReading();
+        if (latestReading == null) {
+            return ResponseEntity.badRequest().body("Khong ton tai du lieu");
+        } else {
+            return ResponseEntity.ok(latestReading);
+        }
+    }
 }

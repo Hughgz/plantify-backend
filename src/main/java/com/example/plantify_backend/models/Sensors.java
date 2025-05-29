@@ -17,7 +17,4 @@ public class Sensors {
     private String status;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
-    @OneToMany(mappedBy = "sensor", cascade = CascadeType.ALL)
-    private List<IrrigationSystems> irrigationSystems;
-
 }

@@ -1,5 +1,7 @@
 package com.example.plantify_backend.dtos;
 
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,7 +17,9 @@ public class SensorReadingDto {
     private float soilConductivity;
     private float soilHumidity;
     private float soilPH;
-    private float waterMeter;
+    private float flowSensor1;
+    private float flowSensor2;
+    private LocalDateTime regDate;
     private float soilTemperature;
     private float temperature;
     private float humidity;

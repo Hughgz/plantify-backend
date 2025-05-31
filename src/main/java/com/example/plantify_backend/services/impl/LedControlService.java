@@ -14,9 +14,11 @@ import com.example.plantify_backend.services.LedControlInt;
 @Service
 public class LedControlService implements LedControlInt{
     private final LedControlRepo ledControlRepo;
+    private final ModelMapper modelMapper;
 
-    public LedControlService(LedControlRepo ledControlRepo) {
+    public LedControlService(LedControlRepo ledControlRepo, ModelMapper modelMapper) {
         this.ledControlRepo = ledControlRepo;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -25,10 +27,9 @@ public class LedControlService implements LedControlInt{
         return ledControls.stream().map(ledControl -> convert(ledControl)).toList();
     }
     
-
     @Override
     public LedControlDto convert(LedControl ledControl) {
-        return new ModelMapper().map(ledControl, LedControlDto.class);
+        return modelMapper.map(ledControl, LedControlDto.class);
     }
 
     @Override
@@ -42,6 +43,4 @@ public class LedControlService implements LedControlInt{
         ledControlRepo.save(ledControl);
         return convert(ledControl);    
     }
-
-
 }

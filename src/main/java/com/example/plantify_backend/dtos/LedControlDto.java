@@ -10,8 +10,10 @@ import lombok.Data;
 public class LedControlDto {
     private int id;
     private String ledName;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime turnOnTime;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime turnOffTime;
 }
